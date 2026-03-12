@@ -1,0 +1,8 @@
+{
+  "task": "我希望做一个商业风格的，偏商务风格，适用于推广的场景。",
+  "content": "nanobot 是一个超轻量级的个人 AI 助手，灵感来源于 OpenClaw。它在仅约 4,000 行代码中提供核心代理功能，比 Clawdbot 的 43 万+行代码小 99%。主要特性包括：超轻量级、研究就绪、闪电般快速、易于使用。",
+  "images": [
+    "./images/nanobot-arch.png",
+    "./images/nanobot-demo.jpg"
+  ]
+}

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>nanobot 学术汇报页</title>
+    <style>
+        /* 基础画布设置 */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #E0E5EC;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 16:9 固定画布 */
+        .slide-canvas {
+            width: 1600px;
+            height: 900px;
+            background-color: #FFFFFF;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            overflow: hidden;
+            color: #333;
+        }
+
+        /* 装饰性背景元素 - 学术清新风格 */
+        .bg-decoration {
+            position: absolute;
+            background: linear-gradient(135deg, #f0f9fa 0%, #e6f2f5 100%);
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(77, 182, 172, 0.05);
+            z-index: 0;
+        }
+
+        /* 标题区域 */
+        .header-group {
+            position: absolute;
+            top: 60px;
+            left: 80px;
+            width: 1440px;
+            z-index: 10;
+        }
+
+        .main-title {
+            font-size: 64px;
+            font-weight: 700;
+            color: #1A4A5A;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .sub-title {
+            font-size: 28px;
+            color: #4DB6AC;
+            margin-top: 10px;
+            font-weight: 400;
+            border-left: 5px solid #4DB6AC;
+            padding-left: 20px;
+        }
+
+        /* 左侧：核心概念与对比 */
+        .left-panel {
+            position: absolute;
+            top: 240px;
+            left: 80px;
+            width: 680px;
+            z-index: 10;
+        }
+
+        .content-card {
+            background: #F8FBFC;
+            border: 1px solid #E1E8EB;
+            border-radius: 16px;
+            padding: 40px;
+            height: 500px;
+        }
+
+        .section-label {
+            display: inline-block;
+            background: #1A4A5A;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 4px;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .intro-text {
+            font-size: 24px;
+            line-height: 1.6;
+            color: #445;
+            margin-bottom: 40px;
+        }
+
+        /* 对比图表区域 */
+        .comparison-box {
+            margin-top: 30px;
+        }
+
+        .bar-container {
+            margin-bottom: 25px;
+        }
+
+        .bar-label {
+            font-size: 18px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .bar-bg {
+            height: 24px;
+            background: #EDF2F4;
+            border-radius: 12px;
+            width: 100%;
+            position: relative;
+        }
+
+        .bar-fill-long {
+            height: 100%;
+            background: #B0BEC5;
+            border-radius: 12px;
+            width: 100%;
+        }
+
+        .bar-fill-short {
+            height: 100%;
+            background: #4DB6AC;
+            border-radius: 12px;
+            width: 1%; /* 99% smaller */
+        }
+
+        .reduction-tag {
+            color: #E53935;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        /* 右侧：特性列表 */
+        .right-panel {
+            position: absolute;
+            top: 240px;
+            right: 80px;
+            width: 720px;
+            z-index: 10;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .feature-item {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            border-bottom: 4px solid #4DB6AC;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.03);
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 20px;
+        }
+
+        .feature-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1A4A5A;
+            margin-bottom: 15px;
+        }
+
+        .feature-list {
+            margin: 0;
+            padding-left: 20px;
+            color: #607D8B;
+            font-size: 18px;
+            line-height: 1.5;
+        }
+
+        .feature-list li {
+            margin-bottom: 8px;
+        }
+
+        /* 页脚 */
+        .footer {
+            position: absolute;
+            bottom: 40px;
+            left: 80px;
+            width: 1440px;
+            border-top: 1px solid #E1E8EB;
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            color: #90A4AE;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="slide-canvas">
+        <!-- 背景装饰 -->
+        <div data-region="background" class="bg-decoration">
+            <div class="bg-circle" style="width: 600px; height: 600px; top: -200px; right: -100px;"></div>
+            <div class="bg-circle" style="width: 400px; height: 400px; bottom: -100px; left: -100px;"></div>
+        </div>
+
+        <!-- 标题区 -->
+        <div data-region="header" class="header-group">
+            <h1 class="main-title">nanobot：超轻量级个人 AI 助手</h1>
+            <div class="sub-title">基于极简主义架构的学术研究与开发工具</div>
+        </div>
+
+        <!-- 左侧内容：定义与效率 -->
+        <div data-region="left_main" class="left-panel">
+            <div class="content-card">
+                <div class="section-label">项目概述</div>
+                <p class="intro-text">
+                    nanobot 是一款灵感源自 OpenClaw 的高效 AI 代理框架。它通过精简冗余逻辑，在极小的代码体积下实现了完整的核心代理功能，为研究者提供了一个透明、可控的实验平台。
+                </p>
+                
+                <div class="comparison-box">
+                    <div class="bar-container">
+                        <div class="bar-label">
+                            <span>Clawdbot (行业基准)</span>
+                            <span>430,000+ 行代码</span>
+                        </div>
+                        <div class="bar-bg"><div class="bar-fill-long"></div></div>
+                    </div>
+                    
+                    <div class="bar-container">
+                        <div class="bar-label">
+                            <span style="color:#4DB6AC; font-weight:bold;">nanobot (本项目)</span>
+                            <span>~4,000 行代码</span>
+                        </div>
+                        <div class="bar-bg"><div class="bar-fill-short"></div></div>
+                    </div>
+                    
+                    <div style="text-align: right; margin-top: 10px;">
+                        <span class="reduction-tag">体积缩减 99%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧内容：核心特性 -->
+        <div data-region="right_main" class="right-panel">
+            <div class="feature-grid">
+                <!-- 特性 1 -->
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#4DB6AC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path><line x1="16" y1="8" x2="2" y2="22"></line><line x1="17.5" y1="15" x2="9" y2="15"></line></svg>
+                    </div>
+                    <div class="feature-title">超轻量级架构</div>
+                    <ul class="feature-list">
+                        <li>仅约 4,000 行核心代码</li>
+                        <li>去除冗余依赖</li>
+                        <li>极低系统资源占用</li>
+                    </ul>
+                </div>
+
+                <!-- 特性 2 -->
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#4DB6AC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a4 4 0 0 0-4-4H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a4 4 0 0 1 4-4h6z"></path></svg>
+                    </div>
+                    <div class="feature-title">研究就绪</div>
+                    <ul class="feature-list">
+                        <li>代码结构清晰透明</li>
+                        <li>高度可读性与可维护性</li>
+                        <li>易于进行学术扩展</li>
+                    </ul>
+                </div>
+
+                <!-- 特性 3 -->
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#4DB6AC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    </div>
+                    <div class="feature-title">闪电般快速</div>
+                    <ul class="feature-list">
+                        <li>毫秒级启动响应</li>
+                        <li>高效的迭代开发周期</li>
+                        <li>优化的推理调度路径</li>
+                    </ul>
+                </div>
+
+                <!-- 特性 4 -->
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#4DB6AC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+                    </div>
+                    <div class="feature-title">易于使用</div>
+                    <ul class

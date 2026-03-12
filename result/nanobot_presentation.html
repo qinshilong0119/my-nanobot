@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>nanobot 商业演示文稿</title>
+    <style>
+        /* 基础画布设置 */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #F4F7F9;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 16:9 固定画布 */
+        .slide-canvas {
+            width: 1600px;
+            height: 900px;
+            background-color: #FFFFFF;
+            position: relative;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.1);
+            overflow: hidden;
+            color: #2C3E50;
+        }
+
+        /* 商务装饰元素 */
+        .bg-accent-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 12px;
+            background: linear-gradient(90deg, #004A99 0%, #00A3E0 100%);
+            z-index: 5;
+        }
+
+        .bg-corner-shape {
+            position: absolute;
+            bottom: -100px;
+            right: -100px;
+            width: 400px;
+            height: 400px;
+            background: rgba(0, 74, 153, 0.03);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        /* 标题区域 */
+        .header-region {
+            position: absolute;
+            top: 70px;
+            left: 80px;
+            width: 1440px;
+            z-index: 10;
+        }
+
+        .main-title {
+            font-size: 68px;
+            font-weight: 800;
+            color: #003366;
+            margin: 0;
+            letter-spacing: -1px;
+            line-height: 1.2;
+        }
+
+        .sub-title {
+            font-size: 30px;
+            color: #5D6D7E;
+            margin-top: 15px;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+        }
+
+        .sub-title::before {
+            content: "";
+            display: inline-block;
+            width: 40px;
+            height: 4px;
+            background: #00A3E0;
+            margin-right: 15px;
+        }
+
+        /* 左侧核心内容区 */
+        .left-content-region {
+            position: absolute;
+            top: 240px;
+            left: 80px;
+            width: 620px;
+            z-index: 10;
+        }
+
+        .value-prop-card {
+            background: #F8FAFC;
+            border-radius: 12px;
+            padding: 40px;
+            border: 1px solid #EAECEF;
+        }
+
+        .stat-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .stat-number {
+            font-size: 82px;
+            font-weight: 800;
+            color: #00A3E0;
+            line-height: 1;
+        }
+
+        .stat-text {
+            margin-left: 20px;
+            font-size: 22px;
+            color: #34495E;
+            line-height: 1.4;
+        }
+
+        .description-p {
+            font-size: 22px;
+            line-height: 1.7;
+            color: #5D6D7E;
+            margin: 0;
+        }
+
+        /* 右侧图片展示区 */
+        .image-panel-region {
+            position: absolute;
+            top: 240px;
+            right: 80px;
+            width: 780px;
+            height: 380px;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .img-box {
+            width: 48%;
+            height: 100%;
+            background: #FFFFFF;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .img-box img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 4px;
+            background: #F0F3F5;
+        }
+
+        .img-label {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #003366;
+        }
+
+        /* 底部特性网格 */
+        .features-region {
+            position: absolute;
+            bottom: 80px;
+            left: 80px;
+            width: 1440px;
+            z-index: 10;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            border-top: 5px solid #004A99;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+        }
+
+        .feature-card h3 {
+            font-size: 24px;
+            color: #003366;
+            margin: 0 0 15px 0;
+        }
+
+        .feature-card ul {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 17px;
+            color: #5D6D7E;
+            line-height: 1.6;
+        }
+
+        .feature-card li {
+            margin-bottom: 8px;
+        }
+
+        /* 页脚信息 */
+        .footer-region {
+            position: absolute;
+            bottom: 30px;
+            right: 80px;
+            font-size: 14px;
+            color: #BDC3C7;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="slide-canvas">
+        <!-- 装饰背景 -->
+        <div class="bg-accent-bar"></div>
+        <div class="bg-corner-shape"></div>
+
+        <!-- 标题区域 -->
+        <div data-region="header" class="header-region">
+            <h1 class="main-title">nanobot：极致精简的个人 AI 助手</h1>
+            <div class="sub-title">以 1% 的代码规模，重塑 AI 代理的效率边界</div>
+        </div>
+
+        <!-- 左侧核心价值 -->
+        <div data-region="left_main" class="left-content-region">
+            <div class="value-prop-card">
+                <div class="stat-group">
+                    <div class="stat-number">99%</div>
+                    <div class="stat-text">
+                        <strong>规模缩减</strong><br>
+                        相较于传统 43万行架构
+                    </div>
+                </div>
+                <p class="description-p">
+                    nanobot 灵感源自 OpenClaw，在仅约 4,000 行核心代码中实现了完整的代理功能。它剔除了冗余，专注于提供最纯粹、最高效的 AI 交互体验。
+                </p>
+            </div>
+        </div>
+
+        <!-- 右侧图片展示 -->
+        <div data-region="image_panel" class="image-panel-region">
+            <div class="img-box">
+                <img src="images/nanobot-arch.png" alt="架构图">
+                <div class="img-label">系统架构：极简主义设计</div>
+            </div>
+            <div class="img-box">
+                <img src="images/nanobot-demo.jpg" alt="演示图">
+                <div class="img-label">交互界面：直观高效体验</div>
+            </div>
+        </div>
+
+        <!-- 底部特性列表 -->
+        <div data-region="features" class="features-region">
+            <div class="feature-grid">
+                <!-- 特性 1 -->
+                <div class="feature-card">
+                    <h3>超轻量级</h3>
+                    <ul>
+                        <li>4,000 行核心代码</li>
+                        <li>极低系统资源占用</li>
+                        <li>无冗余第三方依赖</li>
+                    </ul>
+                </div>
+                <!-- 特性 2 -->
+                <div class="feature-card">
+                    <h3>研究就绪</h3>
+                    <ul>
+                        <li>代码结构清晰透明</li>
+                        <li>易于二次开发扩展</li>
+                        <li>理想的学术实验平台</li>
+                    </ul>
+                </div>
+                <!-- 特性 3 -->
+                <div class="feature-card">
+                    <h3>闪电速度</h3>
+                    <ul>
+                        <li>毫秒级启动响应</li>
+                        <li>极速迭代开发周期</li>
+                        <li>优化的推理调度</li>
+                    </ul>
+                </div>
+                <!-- 特性 4 -->
+                <div class="feature-card">
+                    <h3>易于使用</h3>
+                    <ul>
+                        <li>一键式部署流程</li>
+                        <li>开箱即用的代理功能</li>
+                        <li>极简的配置管理</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <div data-region="footer" class="footer-region">
+            &copy; 2026 nanobot Project | Inspired by OpenClaw | Confidential
+        </div>
+    </div>
+
+</body>
+</html>

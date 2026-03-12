@@ -1,8 +1,9 @@
 import asyncio
 import argparse
+import json
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from nanobot.bus.queue import MessageBus
 from nanobot.agent.loop import AgentLoop
@@ -69,17 +70,96 @@ def build_agent(config, provider: LiteLLMProvider) -> AgentLoop:
     return agent
 
 
-def compose_prompt(user_task: str, main_content: str) -> str:
+def load_job_file(input_path: str) -> Dict[str, Any]:
+    """
+    从 JSON 文件读取任务配置。
+    JSON 示例：
+    {
+      "task": "我希望做一个学术风格的，偏清新风格，适用于学术交流的场景。",
+      "content": "nanobot 是一个超轻量级的个人 AI 助手......",
+      "images": [
+        "./images/demo1.png",
+        "./images/demo2.jpg"
+      ]
+    }
+    """
+    path = Path(input_path).expanduser().resolve()
+    if not path.exists():
+        raise FileNotFoundError(f"输入文件不存在: {path}")
+
+    text = path.read_text(encoding="utf-8")
+    data = json.loads(text)
+
+    if not isinstance(data, dict):
+        raise ValueError("输入 JSON 必须是对象格式。")
+
+    task = data.get("task", "")
+    content = data.get("content", "")
+    images = data.get("images", [])
+
+    if not task or not isinstance(task, str):
+        raise ValueError("JSON 中必须提供字符串类型的 task。")
+
+    if not content or not isinstance(content, str):
+        raise ValueError("JSON 中必须提供字符串类型的 content。")
+
+    if images is None:
+        images = []
+
+    if not isinstance(images, list):
+        raise ValueError("JSON 中的 images 必须是数组，例如 [] 或 ['a.png']。")
+
+    normalized_images: List[str] = []
+    for img in images:
+        if not isinstance(img, str):
+            raise ValueError("images 数组中的每一项都必须是字符串路径。")
+        normalized_images.append(str(Path(img).expanduser()))
+
+    return {
+        "task": task.strip(),
+        "content": content.strip(),
+        "images": normalized_images,
+    }
+
+
+def build_image_instruction(images: List[str]) -> str:
+    """
+    构造图片相关 prompt。
+    """
+    if not images:
+        return """
+图片输入情况：
+- 当前未提供图片。
+- 请不要强行预留空白图片区。
+- 若为了美观需要视觉元素，请优先使用 CSS 基础图形，必要时使用简洁 inline SVG。
+""".strip()
+
+    image_lines = "\n".join([f"- {img}" for img in images])
+
+    return f"""
+图片输入情况：
+- 当前提供了 {len(images)} 张图片。
+- 图片路径如下：
+{image_lines}
+
+图片处理要求：
+1. 若提供了图片，请将图片插入或排布到画板中合适的位置，使整体版式更美观。
+2. 如果只有单张图片，请将其作为主视觉图、说明图或辅助图，放在与内容逻辑相符的位置。
+3. 如果有多张图片，请设计为并列展示、图组展示、步骤图展示或主次搭配展示，但必须保证布局整洁。
+4. 图片不得遮挡核心文字，不得超出固定画布范围。
+5. 图片区域要与整体风格一致，避免显得突兀。
+6. HTML 中请直接使用普通 <img> 标签引用这些图片路径，不要把图片转成 base64。
+7. 图片应放在 data-region 标记的独立区域中，例如 data-region="image_panel" 或 data-region="gallery"。
+8. 若图片较多，请合理筛选展示方式，避免画面拥挤。
+""".strip()
+
+
+def compose_prompt(user_task: str, main_content: str, images: List[str]) -> str:
     """
     组合最终 prompt。
-    
-    user_task:
-        用户对页面风格、场景、设计倾向的要求
-        例如：我希望做一个学术风格的，偏清新风格，适用于学术交流的场景。
-    
-    main_content:
-        需要被总结并写入 HTML 的主题内容
     """
+    image_instruction = build_image_instruction(images)
+
     return f"""
 你是一个经验丰富的全栈代码专家，擅长编写“PPT 友好型”的可编辑 HTML。
 
@@ -106,10 +186,11 @@ def compose_prompt(user_task: str, main_content: str) -> str:
 7. 优先保证“转换后文字可编辑”，其次再考虑视觉效果。
 8. 页面布局必须受控，不能出现内容超出画布范围的情况。
 9. 所有核心文字必须保留在 HTML 文本节点中，不能放进 SVG。
+10. HTML 所有元素必须全部限制在固定画布中，请根据画布大小合理排布。
 
 图形与插图策略：
-10. 可以适度加入插图和视觉装饰，使页面更美观，但必须遵循“优先 CSS 化”的原则。
-11. 基础图形请尽量用 CSS 表达，例如：
+11. 可以适度加入插图和视觉装饰，使页面更美观，但必须遵循“优先 CSS 化”的原则。
+12. 基础图形请尽量用 CSS 表达，例如：
    - 色块
    - 分隔线
    - 圆点
@@ -118,27 +199,29 @@ def compose_prompt(user_task: str, main_content: str) -> str:
    - 卡片
    - 边框高亮
    - 简单几何形状
-12. 复杂图形允许使用 inline SVG，但仅限必要场景，例如：
+13. 复杂图形允许使用 inline SVG，但仅限必要场景，例如：
    - 流程示意图中的不规则连接
    - 简单示意性图标
    - 结构关系图
    - 抽象小插图
-13. 即使使用 inline SVG，也应保持简洁，避免超复杂路径、过多节点、过度装饰。
-14. 整体策略必须是：优先 CSS 化，复杂图形再用 inline SVG，以便后续编辑和转换。
-15. 不要把整块内容做成单张图片，不要使用 base64 图片承载主要内容。
-16. SVG 仅用于辅助插图，不用于承载核心信息文字。
-17. HTML所有元素要全部限制在固定画布中，请你合理根据画布大小排布各种元素。
+14. 即使使用 inline SVG，也应保持简洁，避免超复杂路径、过多节点、过度装饰。
+15. 整体策略必须是：优先 CSS 化，复杂图形再用 inline SVG，以便后续编辑和转换。
+16. 不要把整块内容做成单张图片，不要使用 base64 图片承载主要内容。
+17. SVG 仅用于辅助插图，不用于承载核心信息文字。
+18. 请注意排版格式，不要有文字重叠，图文重叠，图重叠的现象。
 
 样式限制：
-17. 不要使用 canvas。
-18. 不要使用复杂滤镜、mask、clip-path、backdrop-filter。
-19. 尽量不要使用 ::before / ::after；如必须使用，也仅限极简单装饰，不能承载关键信息。
-20. 不要做成网页宣传页，不要做成炫技式设计稿。
-21. 风格要求简洁、专业、现代，并结合用户提出的风格倾向进行设计。
+18. 不要使用 canvas。
+19. 不要使用复杂滤镜、mask、clip-path、backdrop-filter。
+20. 尽量不要使用 ::before / ::after；如必须使用，也仅限极简单装饰，不能承载关键信息。
+21. 不要做成网页宣传页，不要做成炫技式设计稿。
+22. 风格要求简洁、专业、现代，并结合用户提出的风格倾向进行设计。
+
+{image_instruction}
 
 输出要求：
-22. 输出完整 HTML，可直接保存为 .html 文件打开。
-23. 不要输出 markdown 代码块，不要解释，只输出纯 HTML。
+23. 输出完整 HTML，可直接保存为 .html 文件打开。
+24. 不要输出 markdown 代码块，不要解释，只输出纯 HTML。
 
 请按以上要求生成。
 主题内容如下：
@@ -159,6 +242,7 @@ def save_html(content: str, output_path: str) -> Path:
 async def run_once(
     user_task: str,
     main_content: str,
+    images: List[str],
     session_key: str = "cli:auto",
     channel: str = "cli",
     chat_id: str = "auto",
@@ -177,13 +261,15 @@ async def run_once(
     print("正在初始化 AgentLoop...")
     agent = build_agent(config, provider)
 
-    final_prompt = compose_prompt(user_task=user_task, main_content=main_content)
+    final_prompt = compose_prompt(
+        user_task=user_task,
+        main_content=main_content,
+        images=images,
+    )
 
     print("\n" + "=" * 72)
     print("开始执行任务")
-    # print("=" * 72)
-    # print(final_prompt)
-    # print("=" * 72)
+    print("=" * 72)
 
     response = await agent.process_direct(
         content=final_prompt,
@@ -200,16 +286,10 @@ def parse_args():
         description="用 Python 直接调用 nanobot 生成可编辑 HTML"
     )
     parser.add_argument(
-        "--task",
+        "--input",
         type=str,
         required=True,
-        help="用户对页面风格/场景的要求，例如：学术风格、偏清新、适合学术交流",
-    )
-    parser.add_argument(
-        "--content",
-        type=str,
-        required=True,
-        help="主题内容，供 nanobot 总结后生成 HTML",
+        help="输入 JSON 配置文件路径，例如 ./job.json",
     )
     parser.add_argument(
         "--output",
@@ -242,9 +322,12 @@ async def main():
     args = parse_args()
 
     try:
+        job = load_job_file(args.input)
+
         result = await run_once(
-            user_task=args.task,
-            main_content=args.content,
+            user_task=job["task"],
+            main_content=job["content"],
+            images=job["images"],
             session_key=args.session,
             channel=args.channel,
             chat_id=args.chat_id,
